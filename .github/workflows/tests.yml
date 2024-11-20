@@ -10,43 +10,31 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    services:
-      opensearch:
-        image: opensearchproject/opensearch:2.15.0
-        ports:
-          - 9200:9200
-          - 9600:9600
-        env:
-          discovery.type: single-node
-          OPENSEARCH_INITIAL_ADMIN_PASSWORD: Password1!rohu656UHhhh
-        options: >-
-          --health-cmd="curl -f https://localhost:9200/_cluster/health -ku 'admin:Password1!rohu656UHhhh'"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
-      postgres:
-        image: postgres:14
-        ports:
-          - 5432:5432
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: local_db
-        options: >-
-          --health-cmd pg_isready
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
     steps:
       - uses: actions/checkout@v3
 
-      # Install OpenSearch plugins
-      - name: Install OpenSearch plugins
+      # Build and start OpenSearch container
+      - name: Build and start OpenSearch
         run: |
-          docker exec ${{ job.services.opensearch.id }} /usr/share/opensearch/bin/opensearch-plugin install --batch analysis-icu
-          docker exec ${{ job.services.opensearch.id }} /usr/share/opensearch/bin/opensearch-plugin install --batch analysis-kuromoji
+          cd src/opensearch
+          docker build -t opensearch-test .
+          docker run -d \
+            -e "discovery.type=single-node" \
+            -e "OPENSEARCH_INITIAL_ADMIN_PASSWORD=Password1!rohu656UHhhh" \
+            -p 9200:9200 -p 9600:9600 \
+            opensearch-test
+
+      # Build and start PostgreSQL container
+      - name: Build and start PostgreSQL
+        run: |
+          cd src/utils/pgsql
+          docker build -t postgres-test .
+          docker run -d \
+            -e POSTGRES_USER=postgres \
+            -e POSTGRES_PASSWORD=postgres \
+            -e POSTGRES_DB=local_db \
+            -p 5432:5432 \
+            postgres-test
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -56,6 +44,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Wait for services to be ready
       - name: Wait for services
         run: |
           timeout 60s bash -c '
