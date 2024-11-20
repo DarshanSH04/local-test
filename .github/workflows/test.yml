@@ -9,11 +9,10 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
     services:
       opensearch:
-        build:
-          context: ./src/opensearch
-          dockerfile: Dockerfile
+        image: opensearchproject/opensearch:2.15.0
         ports:
           - 9200:9200
           - 9600:9600
@@ -27,9 +26,7 @@ jobs:
           --health-retries=5
 
       postgres:
-        build:
-          context: ./src/utils/pgsql
-          dockerfile: Dockerfile
+        image: postgres:14
         ports:
           - 5432:5432
         env:
@@ -44,6 +41,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+
+      # Install OpenSearch plugins
+      - name: Install OpenSearch plugins
+        run: |
+          docker exec ${{ job.services.opensearch.id }} /usr/share/opensearch/bin/opensearch-plugin install --batch analysis-icu
+          docker exec ${{ job.services.opensearch.id }} /usr/share/opensearch/bin/opensearch-plugin install --batch analysis-kuromoji
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
