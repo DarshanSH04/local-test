@@ -27,7 +27,7 @@ jobs:
       # Build and start PostgreSQL container
       - name: Build and start PostgreSQL
         run: |
-          cd src/utils/pgsql
+          cd src/pgsql
           docker build -t postgres-test .
           docker run -d \
             -e POSTGRES_USER=postgres \
