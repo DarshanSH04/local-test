@@ -1,0 +1,22 @@
+{
+  "name": "local-test",
+  "version": "1.0.0",
+  "description": "Test project with OpenSearch and PostgreSQL",
+  "scripts": {
+    "test": "mocha -r ts-node/register 'tests/**/*.spec.ts' --timeout 10000"
+  },
+  "dependencies": {
+    "@opensearch-project/opensearch": "^2.5.0",
+    "knex": "^2.5.1",
+    "pg": "^8.11.3"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.3.11",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^20.10.5",
+    "chai": "^4.3.10",
+    "mocha": "^10.2.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}

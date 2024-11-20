@@ -1,0 +1,69 @@
+name: Database Tests
+
+on:
+  push:
+    branches: [ '*' ]
+  pull_request:
+    branches: [ '*' ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      opensearch:
+        build:
+          context: ./src/opensearch
+          dockerfile: Dockerfile
+        ports:
+          - 9200:9200
+          - 9600:9600
+        env:
+          discovery.type: single-node
+          OPENSEARCH_INITIAL_ADMIN_PASSWORD: Password1!rohu656UHhhh
+        options: >-
+          --health-cmd="curl -f https://localhost:9200/_cluster/health -ku 'admin:Password1!rohu656UHhhh'"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+      postgres:
+        build:
+          context: ./src/utils/pgsql
+          dockerfile: Dockerfile
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: local_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Wait for services
+        run: |
+          timeout 60s bash -c '
+          until curl -sf https://localhost:9200 -ku "admin:Password1!rohu656UHhhh"; do
+            echo "Waiting for OpenSearch..."
+            sleep 5
+          done
+          until PGPASSWORD=postgres psql -h localhost -U postgres -d local_db -c "\l" > /dev/null 2>&1; do
+            echo "Waiting for PostgreSQL..."
+            sleep 5
+          done'
+
+      - name: Run tests
+        run: npm test
