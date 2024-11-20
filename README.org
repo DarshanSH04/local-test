@@ -1,24 +1,24 @@
-# Test Project with OpenSearch and PostgreSQL
+* Test Project with OpenSearch and PostgreSQL
 
 This project demonstrates running tests with OpenSearch and PostgreSQL in GitHub Actions.
 
-## Local Development
+** Local Development
 
 1. Start OpenSearch:
-```bash
+#+BEGIN_SRC bash
 cd src/opensearch
 docker build -t opensearch-test .
 docker run -e "OPENSEARCH_INITIAL_ADMIN_PASSWORD=Password1!rohu656UHhhh" -p 9200:9200 -p 9600:9600 -e "discovery.type=single-node" opensearch-test
-```
+#+END_SRC
 
 2. Start PostgreSQL:
-```bash
+#+BEGIN_SRC bash
 cd src/pgsql
 docker build -t postgres-test .
 docker run -p 5432:5432 postgres-test
-```
+#+END_SRC
 
 3. Run tests:
-```bash
+#+BEGIN_SRC bash
 npm test
-```
+#+END_SRC
