@@ -61,7 +61,7 @@ jobs:
       # PostgreSQL
       - name: Build PostgreSQL image
         run: |
-          cd src/utils/pgsql
+          cd src/pgsql
           docker build -t postgres-test .
 
       - name: Start PostgreSQL container
