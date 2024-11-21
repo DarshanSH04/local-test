@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "Test project with OpenSearch and PostgreSQL",
   "scripts": {
-    "test": "mocha -r ts-node/register 'tests/**/*.spec.ts' --timeout 10000"
+    "test": "mocha -r ts-node/register 'tests/**/*.spec.ts' --timeout 10000",
+    "build": "tsc"
   },
   "dependencies": {
     "@opensearch-project/opensearch": "^2.5.0",
