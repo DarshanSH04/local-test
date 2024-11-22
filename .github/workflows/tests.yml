@@ -45,11 +45,48 @@ jobs:
         with:
           name: build-artifacts
           path: dist/
-      # OpenSearch
-      - name: Build OpenSearch image
+
+      # Set up Docker cache
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Cache OpenSearch Docker image
+      - name: Cache OpenSearch Docker image
+        uses: actions/cache@v4
+        with:
+          path: /tmp/opensearch-cache
+          key: opensearch-${{ hashFiles('src/opensearch/Dockerfile') }}
+
+      # Cache PostgreSQL Docker image
+      - name: Cache PostgreSQL Docker image
+        uses: actions/cache@v4
+        with:
+          path: /tmp/postgres-cache
+          key: postgres-${{ hashFiles('src/pgsql/Dockerfile') }}
+
+      # Build or load OpenSearch image
+      - name: Build/Load OpenSearch image
         run: |
-          cd src/opensearch
-          docker build -t opensearch-test .
+          if [ -f /tmp/opensearch-cache/image.tar ]; then
+            docker load < /tmp/opensearch-cache/image.tar
+          else
+            cd src/opensearch
+            docker build -t opensearch-test .
+            mkdir -p /tmp/opensearch-cache
+            docker save opensearch-test > /tmp/opensearch-cache/image.tar
+          fi
+
+      # Build or load PostgreSQL image
+      - name: Build/Load PostgreSQL image
+        run: |
+          if [ -f /tmp/postgres-cache/image.tar ]; then
+            docker load < /tmp/postgres-cache/image.tar
+          else
+            cd src/pgsql
+            docker build -t postgres-test .
+            mkdir -p /tmp/postgres-cache
+            docker save postgres-test > /tmp/postgres-cache/image.tar
+          fi
 
       - name: Start OpenSearch container
         run: |
@@ -58,11 +95,6 @@ jobs:
             -e "OPENSEARCH_INITIAL_ADMIN_PASSWORD=Password1!rohu656UHhhh" \
             -p 9200:9200 -p 9600:9600 \
             opensearch-test
-      # PostgreSQL
-      - name: Build PostgreSQL image
-        run: |
-          cd src/pgsql
-          docker build -t postgres-test .
 
       - name: Start PostgreSQL container
         run: |
@@ -72,6 +104,7 @@ jobs:
             -e POSTGRES_DB=local_db \
             -p 5432:5432 \
             postgres-test
+
       # Wait for services to be ready
       - name: Wait for services
         run: |
