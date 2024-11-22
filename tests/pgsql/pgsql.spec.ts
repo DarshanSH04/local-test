@@ -40,7 +40,7 @@ describe('pgsql', () => {
       await db('green_company').insert({
         id: 1,
         entity_id: entity.id,
-        name: 'Test Green Company',
+        name: 'Test Company',
         normalized_name: 'test_green_company',
         source_url: 'https://example.com',
         updated_at: new Date().toISOString()
@@ -73,7 +73,7 @@ describe('pgsql', () => {
     const companies = await db('green_company').select('*')
     console.log(companies)
     assert.equal(companies.length, 1)
-    assert.equal(companies[0].name, 'Test Green Company')
+    assert.equal(companies[0].name, 'Test Company')
 
     const entities = await db('entity').select('*')
     assert.equal(entities.length, 1)
